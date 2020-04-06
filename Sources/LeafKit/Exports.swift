@@ -31,7 +31,6 @@ extension Character {
     static let greaterThan = ">".first!
     static let ampersand = "&".first!
     static let vertical = "|".first!
-    static let underscore = "_".first!
     
     var isUppercaseLetter: Bool {
         return (.A ... .Z).contains(self)

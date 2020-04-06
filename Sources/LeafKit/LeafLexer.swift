@@ -10,7 +10,6 @@ extension Character {
             || self.isValidOperator
             || (.zero ... .nine) ~= self
             || self == .period
-            || self == .underscore
     }
     
     var isValidOperator: Bool {
