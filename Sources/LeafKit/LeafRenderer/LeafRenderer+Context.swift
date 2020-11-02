@@ -187,7 +187,7 @@ public extension LeafRenderer.Context {
     /// Clear an entire context scope.
     ///
     /// Note that if values were previously registered from an object, they will be removed unconditionally,
-    /// and if such reigstered objects prevent overlay or extension, this will not reset that state, so new
+    /// and if such registered objects prevent overlay or extension, this will not reset that state, so new
     /// values will not be addable.
     mutating func clearContext(scope key: String) throws {
         guard let scope = try? validateScope(key) else { throw err("\(key) is not a valid scope") }
@@ -221,7 +221,10 @@ public extension LeafRenderer.Context {
     ///
     /// If a context has options, those set in the second context will always override the lower context's options.
     mutating func overlay(_ secondary: Self) throws {
-        guard !secondary.isRootContext else { throw err("Overlaid contexts cannot be root contexts") }
+        if secondary.isRootContext { throw err("Overlaid contexts cannot be root contexts") }
+        /// Shortcircuit when secondary context has no values to overlay
+        if secondary.isEmpty { return }
+        
         try secondary.unsafeObjects.forEach {
             try canOverlay($0.key, .unsafe)
             unsafeObjects[$0.key] = $0.value
@@ -245,6 +248,9 @@ public extension LeafRenderer.Context {
             else { secondary.options!._storage.forEach { options!._storage.update(with: $0) }  }
         }
     }
+    
+    var isEmpty: Bool {
+        contexts.isEmpty && unsafeObjects.isEmpty && objects.isEmpty && options?.isEmpty ?? true }
 }
 
 internal extension LeafRenderer.Context {

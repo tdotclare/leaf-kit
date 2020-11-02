@@ -28,7 +28,6 @@ public extension LeafRenderer.Options {
     
     init(arrayLiteral elements: LeafRenderer.Option...) { self.init(elements) }
     
-    
     /// Unconditionally update the `Options` with the provided `option`
     @discardableResult
     mutating func update(_ option: LeafRenderer.Option) -> Bool {
@@ -41,6 +40,8 @@ public extension LeafRenderer.Options {
     /// Unconditionally remove the `Options` with the provided `option`
     mutating func unset(_ option: LeafRenderer.Option.Case) {
         if let x = _storage.first(where: {$0.celf == option}) { _storage.remove(x) } }
+    
+    var isEmpty: Bool { _storage.isEmpty }
 }
 
 // MARK: - Internal Implementation
