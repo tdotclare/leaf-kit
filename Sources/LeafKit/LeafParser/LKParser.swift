@@ -306,7 +306,15 @@ internal struct LKParser {
             guard case .scope = scopes[currentScope].last?.container else {
                 __MajorBug("Scope change didn't find a scope reference") }
             scopes[currentScope].removeLast()
-            scopes[currentScope].append(decayed.isEmpty ? .scope(nil) : decayed[0] )
+            if !decayed.isEmpty {
+                var decayed = decayed[0]
+                if case .passthrough(.expression(let e)) = decayed.container,
+                   e.declaresVariable != nil {
+                    warn(.unknownError("Declaring a variable as only action in scope has no effect"))
+                    decayed = .passthrough(.value(.trueNil))
+                }
+                scopes[currentScope].append(decayed)
+            } else { scopes[currentScope].append(.scope(nil)) }
         } else { scopeStack.removeLast() }
         if rawBlock {
             if rawStack.last?.recall ?? false { rawStack[rawStack.count - 1].close() }

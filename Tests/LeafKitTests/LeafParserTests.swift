@@ -708,5 +708,10 @@ final class LeafParserTests: MemoryRendererTestCase {
         try XCTAssertEqual(render("A1"), "1")
         try XCTAssertEqual(render("A2"), "2")
     }
+    
+    func testAssignLazy() throws {
+        try XCTAssertEqual(render(raw: "#(Timestamp() == Timestamp())"), "false")
+        try XCTAssertEqual(render(raw: "#let(date = Timestamp())#(date == date)"), "true")
+    }
 }
 

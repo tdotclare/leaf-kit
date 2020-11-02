@@ -128,20 +128,21 @@ final class PrintTests: MemoryRendererTestCase {
 
 struct Stopwatch {
     var total: String { _total.formatSeconds() }
-    var average: String { (_total / Double(_laps)).formatSeconds() }
+    var average: String { _average.formatSeconds() }
     
-    mutating func start() { _laps = 0; _total = 0.0; _lap = Date() }
+    mutating func start() { laps = 0; _total = 0.0; _lap = Date() }
     
     @discardableResult
     mutating func lap(accumulate: Bool = false) -> String {
         let x = _lap
         _lap = Date()
-        if accumulate { _laps += 1; _total += x +-> _lap }
+        if accumulate { laps += 1; _total += x +-> _lap }
         return (x +-> _lap).formatSeconds() }
     
+    private(set) var laps: Int = 0
     private(set) var _total = 0.0
+    var _average: Double { _total / Double(laps) }
     private var _lap: Date = Date()
-    private var _laps: Int = 0
 }
 
 // MARK: For `testContexts()`

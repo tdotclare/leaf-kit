@@ -65,6 +65,25 @@ internal final class LKSerializer {
         if let timeout = timeout { threshold = timeout }
         start = Date.timeIntervalSinceReferenceDate
         lapTime = Date.distantPast.timeIntervalSinceReferenceDate
+        
+        var atomicAppend: LeafError? {
+            switch ast.scopes[(table * -1) - 1][offset].container {
+                case .passthrough(.expression(let exp)) where exp.form.exp == .assignment:
+                    buffer.pointee.voidAction()
+                    switch exp.evalAssignment(&context) {
+                        case .success(let val): assignValue(val.0, val.1)
+                        case .failure(let err): return err
+                    }
+                case .passthrough(let param): append(param.evaluate(&context))
+                case .raw(var raw):
+                    append(&raw)
+                    buffer.pointee.close()
+                    buffer.pointee.voidAction()
+                default: __MajorBug("Non-atomic atomic scope")
+            }
+            return nil
+        }
+        
         serialize:
         while !cutoff, error == nil, !stack.isEmpty {
             /// At start of a scope block, evaluate the scope. Terminate if it
@@ -82,27 +101,13 @@ internal final class LKSerializer {
                 while count == nil {
                     guard let run = block != nil ? evaluateScope() : true else { break serialize }
                     guard run else { continue serialize }
-                    switch ast.scopes[(table * -1) - 1][offset].container {
-                        case .passthrough(let param): append(param.evaluate(&context))
-                        case .raw(var raw):
-                            append(&raw)
-                            buffer.pointee.close()
-                            buffer.pointee.voidAction()
-                        default: __MajorBug("Non-atomic atomic scope")
-                    }
+                    if let e = atomicAppend { return .failure(e) }
                     if cutoff { break serialize }
                 }
                 /// Run non-nils
                 while count! > 0, !cutoff {
                     guard reEvaluateScope() else { continue serialize }
-                    switch ast.scopes[(-1 * table) - 1][offset].container {
-                        case .passthrough(let param): append(param.evaluate(&context))
-                        case .raw(var raw):
-                            append(&raw)
-                            buffer.pointee.close()
-                            buffer.pointee.voidAction()
-                        default: __MajorBug("Non-atomic atomic scope")
-                    }
+                    if let e = atomicAppend { return .failure(e) }
                 }
                 if cutoff && count! > 0 { break serialize }
                 buffer.pointee.close()
@@ -136,8 +141,7 @@ internal final class LKSerializer {
                         context.stack[contextDepth].ids.insert(x.variable.member!)
                         assignValue(x.variable, x.set?.evaluate(&context) ?? .trueNil)
                     } else { append(exp.evaluate(&context)) }
-                case .passthrough(let param) :
-                    append(param.evaluate(&context))
+                case .passthrough(let param): append(param.evaluate(&context))
                 // Blocks
                 case .block(_, let b, let p):
                     var elideVoidAction = false

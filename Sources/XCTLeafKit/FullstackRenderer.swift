@@ -42,9 +42,9 @@ open class FullstackRendererTestCase: LeafKitTestCase {
                                           options: options) }
                    .always { _ in self.complete(which) }
     }
-    
-    /// Sleep 5 µs per uncompleted task at a time
-    final public func waitTilDone() { while let sleep = toGo { usleep(5 * sleep) } }
+        
+    /// Sleep x µs per uncompleted task at a time
+    final public func waitTilDone(perTask x: UInt32 = 5) { while let sleep = toGo { usleep(x * sleep) } }
     
     private class Renderer {
         init(_ r: LeafRenderer) { self.r = r }

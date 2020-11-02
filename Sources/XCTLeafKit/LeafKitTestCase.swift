@@ -1,4 +1,5 @@
 @testable import LeafKit
+import XCTest
 import Dispatch
 
 open class LeafKitTestCase: XCTestCase {
@@ -79,12 +80,8 @@ private extension LeafKitTestCase {
     func _primeLeaf() { if !LKConf.isRunning { LKConf.entities = .leaf4Core } }
     
     static func _resetLeaf() {
-        #if DEBUG && canImport(XCTest)
-        LeafConfiguration.started = false
-        #else
-        fatalError("DO NOT USE IN NON-DEBUG BUILDS")
-        #endif
-        
+        if LKConf.isRunning { LeafConfiguration.started = false }
+
         LeafConfiguration.tagIndicator = .octothorpe
         LeafConfiguration.entities = .leaf4Core
         
